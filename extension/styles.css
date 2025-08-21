@@ -1,0 +1,62 @@
+/* MoneyMove 연체 분석기 스타일 */
+
+.moneymove-summary {
+    margin: 20px 0;
+    padding: 15px;
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 5px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.summary-content {
+    color: #495057;
+}
+
+.summary-content span {
+    margin-right: 8px;
+}
+
+/* 로딩 애니메이션 */
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+#moneymove-loading {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* 결과 표시 애니메이션 */
+#investment-summary {
+    animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+/* 반응형 대응 */
+@media (max-width: 768px) {
+    .moneymove-summary {
+        font-size: 13px;
+        padding: 12px;
+    }
+    
+    .summary-content div {
+        margin-bottom: 6px !important;
+    }
+}
