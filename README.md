@@ -3,6 +3,18 @@
 이 크롬 확장 프로그램은 MoneyMove 머니무브 투자 플랫폼의 연체 페이지에서 투자 데이터를 자동으로 계산하고 시각화합니다.
 투자 현황을 직관적으로 확인하고, 월별 데이터까지 추적할 수 있어 투자 분석에 활용할 수 있습니다.
 
+## 주요 화면
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/verlane/moneymove-analyzer/refs/heads/main/assets/demo-1.png" alt="데모 1" width="45%"/>
+  <img src="https://raw.githubusercontent.com/verlane/moneymove-analyzer/refs/heads/main/assets/demo-2.png" alt="데모 2" width="45%"/>
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/verlane/moneymove-analyzer/refs/heads/main/assets/demo-3.png" alt="데모 3" width="45%"/>
+  <img src="https://raw.githubusercontent.com/verlane/moneymove-analyzer/refs/heads/main/assets/demo-4.png" alt="데모 4" width="45%"/>
+</p>
+
 ## 주요 기능
 
 ### 실시간 연체 분석
@@ -33,7 +45,7 @@
 ## 설치 방법
 
 ### Chrome Web Store (추천)
-1. [Chrome Web Store](https://chrome.google.com/webstore)에서 "MoneyMove 머니무브 분석기" 검색  
+1. [Chrome Web Store](https://chromewebstore.google.com/detail/moneymove-%EB%A8%B8%EB%8B%88%EB%AC%B4%EB%B8%8C-%EB%B6%84%EC%84%9D%EA%B8%B0/onbmacfaeaceopopjlgkjeonglakljmb?hl=ko)에서 "MoneyMove 머니무브 분석기" 페이지에 접속  
 2. "Chrome에 추가" 버튼 클릭  
 
 ### 개발자 모드 (수동 설치)
