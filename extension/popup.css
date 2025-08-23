@@ -168,16 +168,22 @@ body {
     margin-top: auto;
 }
 
-.github-link {
-    font-size: 12px;
+.github-link, .donate-link {
+    font-size: 14px;
     color: #6c757d;
     text-decoration: none;
-    transition: color 0.2s ease;
+    transition: text-decoration 0.2s ease;
+    display: inline-block;
 }
 
-.github-link:hover {
-    color: #009de9;
+.github-link:hover, .donate-link:hover {
     text-decoration: underline;
+}
+
+.separator {
+    color: #dee2e6;
+    margin: 0 8px;
+    font-size: 14px;
 }
 
 /* 로딩 상태 */

@@ -1,29 +1,246 @@
-/* MoneyMove 연체 분석기 스타일 */
+/* MoneyMove 머니무브 분석기 - 메인 스타일 */
 
-.moneymove-summary {
+/* 색상 변수 */
+:root {
+    --mm-primary: #007bff;
+    --mm-success: #28a745;
+    --mm-warning: #fd7e14;
+    --mm-danger: #dc3545;
+    --mm-info: #17a2b8;
+    --mm-light: #f8f9fa;
+    --mm-dark: #495057;
+    --mm-muted: #6c757d;
+    --mm-border: #dee2e6;
+    --mm-border-light: #f1f3f4;
+    --mm-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+/* 툴팁 */
+.moneymove-tooltip {
+    position: relative;
+    cursor: help;
+    border-bottom: 1px dotted #999;
+    display: inline-block;
+}
+
+.moneymove-tooltip .tooltip-content {
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333 !important;
+    color: white !important;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px !important;
+    white-space: nowrap;
+    z-index: 10000 !important;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s, visibility 0.3s;
+    margin-bottom: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    pointer-events: none;
+}
+
+.moneymove-tooltip:hover .tooltip-content {
+    visibility: visible;
+    opacity: 1;
+}
+
+.moneymove-tooltip .tooltip-content::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: #333;
+}
+
+/* 로딩 */
+.mm-loading {
     margin: 20px 0;
     padding: 15px;
-    background: #f8f9fa;
-    border: 1px solid #dee2e6;
+    background: var(--mm-light);
+    border: 1px solid var(--mm-border);
     border-radius: 5px;
+    font-size: 15px;
+    text-align: center;
+    color: var(--mm-muted);
+}
+
+.mm-loading-content {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 요약 박스 */
+.mm-summary {
+    margin: 20px 0;
+    padding: 15px;
+    background: var(--mm-light);
+    border: 1px solid var(--mm-border);
+    border-radius: 5px;
+}
+
+.mm-summary-content {
+    font-size: 15px;
+    line-height: 1.6;
+}
+
+.mm-summary-row {
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.mm-summary-row:last-child {
+    margin-bottom: 0;
+}
+
+.mm-summary-highlight {
+    color: var(--mm-primary);
+    font-size: 16px;
+}
+
+.mm-summary-section {
+    color: var(--mm-muted);
+    margin-bottom: 8px;
+}
+
+.mm-summary-section-title {
+    font-weight: 500;
+    color: var(--mm-dark);
+}
+
+.mm-portfolio-section {
+    color: var(--mm-dark);
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--mm-border);
+}
+
+/* 모달 오버레이 */
+.mm-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 모달 */
+.mm-modal {
+    position: relative;
+    background: white;
+    border: 2px solid var(--mm-border);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: var(--mm-shadow);
+    z-index: 10000;
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    margin: 20px;
+}
+
+/* 데이터 관리 모달은 더 넓게 */
+.mm-modal-wide {
+    max-width: 95vw;
+    width: 1200px;
+}
+
+/* 차트 모달은 더 넓게 */
+.mm-modal-charts {
+    max-width: 98vw;
+    width: 1400px;
+}
+
+.mm-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.mm-modal-title {
+    margin: 0;
+    color: #333;
+}
+
+.mm-modal-close {
+    background: none;
+    border: none;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+/* 버튼 */
+.mm-btn {
+    border: none;
+    padding: 8px 15px;
+    border-radius: 3px;
+    cursor: pointer;
     font-size: 14px;
-    line-height: 1.5;
-}
-
-.summary-content {
-    color: #495057;
-}
-
-.summary-content span {
     margin-right: 8px;
 }
 
-/* 로딩 애니메이션 */
+.mm-btn-primary {
+    background: var(--mm-primary);
+    color: white;
+}
+
+.mm-btn-secondary {
+    background: white;
+    color: var(--mm-dark);
+    border: 1px solid var(--mm-border);
+}
+
+.mm-btn-danger {
+    background: white;
+    color: var(--mm-muted);
+    border: 1px solid var(--mm-border);
+}
+
+.mm-btn-small {
+    padding: 4px 10px;
+    font-size: 12px;
+}
+
+/* 차트 그리드 */
+.mm-charts-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+}
+
+.mm-chart-item h4 {
+    text-align: center;
+    margin-bottom: 10px;
+}
+
+/* 애니메이션 */
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
 
+.mm-spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--mm-border);
+    border-top-color: var(--mm-primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+/* 로딩 페이드인 애니메이션 */
 #moneymove-loading {
     animation: fadeIn 0.3s ease-in;
 }
@@ -33,8 +250,8 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* 결과 표시 애니메이션 */
-#investment-summary {
+/* 요약 박스 슬라이드 업 애니메이션 */
+.mm-summary {
     animation: slideInUp 0.5s ease-out;
 }
 
@@ -49,14 +266,241 @@
     }
 }
 
+/* 색상 유틸리티 클래스 */
+.text-primary {
+    color: var(--mm-primary) !important;
+    font-size: 16px;
+}
+
+.text-success {
+    color: var(--mm-success) !important;
+    font-size: 16px;
+}
+
+.text-warning {
+    color: var(--mm-warning) !important;
+    font-size: 16px;
+}
+
+.text-danger {
+    color: var(--mm-danger) !important;
+    font-size: 16px;
+}
+
+/* 테이블 스타일 */
+.mm-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.mm-table-cell {
+    padding: 10px 8px;
+    border-bottom: 1px solid var(--mm-border-light);
+    font-size: 14px;
+    color: var(--mm-dark);
+}
+
+.mm-table-cell-right {
+    text-align: right;
+}
+
+.mm-table-cell-center {
+    text-align: center;
+}
+
+.mm-table-cell-primary {
+    color: var(--mm-primary);
+}
+
+.mm-table-cell-success {
+    color: var(--mm-success);
+}
+
+.mm-table-cell-warning {
+    color: var(--mm-warning);
+}
+
+.mm-table-cell-muted {
+    color: var(--mm-muted);
+}
+
+.mm-table-cell-danger {
+    color: var(--mm-danger);
+}
+
+.mm-table-header {
+    padding: 12px 8px;
+    text-align: left;
+    font-weight: 500;
+    color: var(--mm-dark);
+    font-size: 14px;
+    background: var(--mm-light);
+    border-bottom: 1px solid var(--mm-border);
+}
+
+.mm-table-header-right {
+    text-align: right;
+}
+
+.mm-table-header-center {
+    text-align: center;
+}
+
+.mm-table-empty {
+    padding: 40px;
+    text-align: center;
+    color: var(--mm-muted);
+    font-size: 14px;
+}
+
+/* 버튼 링크 */
+.mm-btn-link {
+    background: none;
+    border: none;
+    color: var(--mm-primary);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: inherit;
+}
+
+/* 폼 스타일 */
+.mm-form {
+    display: none;
+    background: var(--mm-light);
+    border: 1px solid var(--mm-border);
+    border-radius: 4px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.mm-form-title {
+    margin: 0 0 20px 0;
+    color: var(--mm-dark);
+    font-weight: 500;
+}
+
+.mm-form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.mm-form-grid-3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.mm-form-grid-4 {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.mm-form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.mm-form-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+}
+
+.mm-form-input-month {
+    width: 90%;
+}
+
+.mm-form-actions {
+    text-align: right;
+    margin-top: 20px;
+}
+
+.mm-section-divider {
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--mm-border);
+}
+
+.mm-data-count {
+    color: var(--mm-muted);
+    font-size: 13px;
+}
+
+.mm-scrollable {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* 차트 컨트롤 */
+.mm-chart-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 15px 20px;
+    background: var(--mm-light);
+    border-bottom: 1px solid var(--mm-border);
+    margin-bottom: 20px;
+}
+
+.mm-chart-control-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mm-control-label {
+    font-weight: 500;
+    color: var(--mm-dark);
+    margin-right: 5px;
+    font-size: 14px;
+}
+
+.chart-view-btn.active {
+    background: var(--mm-primary);
+    color: white;
+}
+
 /* 반응형 대응 */
+@media (max-width: 1200px) {
+    .mm-charts-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+}
+
 @media (max-width: 768px) {
-    .moneymove-summary {
+    .mm-summary {
         font-size: 13px;
         padding: 12px;
     }
     
-    .summary-content div {
-        margin-bottom: 6px !important;
+    .mm-summary-content {
+        font-size: 13px;
+    }
+    
+    .mm-charts-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .mm-modal {
+        max-width: 95vw;
+        padding: 15px;
+    }
+    
+    .mm-chart-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .mm-chart-control-group {
+        justify-content: center;
     }
 }

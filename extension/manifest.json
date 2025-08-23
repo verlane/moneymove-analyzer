@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "MoneyMove 머니무브 분석기",
-  "version": "0.0.1",
-  "description": "Automatically calculates and visualizes investment analysis data on MoneyMove overdue pages | 머니무브 연체 페이지에서 투자 분석 데이터를 자동 계산 및 시각화",
+  "version": "0.0.2",
+  "description": "머니무브 투자 분석 데이터를 자동 계산 및 시각화 | Automatically calculates and visualizes investment analysis data on MoneyMove overdue pages",
   "permissions": [
     "storage",
     "activeTab"
@@ -13,7 +13,7 @@
   "content_scripts": [
     {
       "matches": ["https://www.moneymove.ai/invest/my-page/bond/overdue"],
-      "js": ["chart.min.js", "content.js"],
+      "js": ["chart.min.js", "modules/calculator.js", "modules/data-manager.js", "modules/chart-manager.js", "modules/ui-components.js", "content.js"],
       "css": ["styles.css"]
     }
   ],

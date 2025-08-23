@@ -63,8 +63,18 @@ function setupEventListeners() {
     elements.pageEnabled.addEventListener('change', handleCheckboxChange);
 }
 
+// 버전 정보 표시
+function displayVersion() {
+    const manifest = chrome.runtime.getManifest();
+    const versionElement = document.getElementById('version-display');
+    if (versionElement) {
+        versionElement.textContent = `v${manifest.version}`;
+    }
+}
+
 // 초기화
 async function init() {
+    displayVersion();
     await updateCheckbox();
     setupEventListeners();
     
