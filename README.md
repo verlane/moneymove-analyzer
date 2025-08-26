@@ -15,6 +15,10 @@
   <img src="https://raw.githubusercontent.com/verlane/moneymove-analyzer/refs/heads/main/assets/demo-4.png" alt="데모 4" width="45%"/>
 </p>
 
+<p align="center">
+  <img src="https://raw.githubusercontent.com/verlane/moneymove-analyzer/refs/heads/main/assets/demo-5.png" alt="데모 5" width="45%"/>
+</p>
+
 ## 주요 기능
 
 ### 실시간 연체 분석
