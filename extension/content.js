@@ -99,12 +99,76 @@
 
     // 메인페이지 데이터 로드
     async function loadMainPageData() {
+        // 먼저 실시간 데이터 시도
+        try {
+            const liveData = await fetchMainPageData();
+            
+            if (liveData.expectedRepaymentPrincipal && liveData.expectedYield && liveData.cumulativeProfit) {
+                EXPECTED_REPAYMENT_PRINCIPAL = liveData.expectedRepaymentPrincipal;
+                EXPECTED_YIELD = liveData.expectedYield;
+                CUMULATIVE_PROFIT = liveData.cumulativeProfit;
+                return;
+            }
+        } catch (error) {
+            console.warn('[Content] 실시간 데이터 로드 실패, Storage 데이터 사용:', error.message);
+        }
+        
+        // 실시간 데이터 실패시 Storage/쿠키 데이터 사용
         const data = await loadDataFromCookies();
         
         EXPECTED_REPAYMENT_PRINCIPAL = data.expectedRepaymentPrincipal;
         EXPECTED_YIELD = data.expectedYield;
         CUMULATIVE_PROFIT = data.cumulativeProfit;
+    }
 
+    // 메인페이지에서 실시간 데이터 가져오기
+    async function fetchMainPageData() {
+        const response = await fetch('/invest/my-page/main?type=main', {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+            },
+            credentials: 'same-origin'
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const html = await response.text();
+        
+        // HTML에서 데이터 추출
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        
+        // 모든 em 요소들을 찾아서 매칭
+        const allEmElements = doc.querySelectorAll('.bond-cnt__box ul li strong em');
+        
+        let expectedYield = null;
+        let cumulativeProfit = null; 
+        let expectedRepaymentPrincipal = null;
+        
+        // 각 요소를 확인해서 올바른 값 찾기
+        allEmElements.forEach((em, index) => {
+            const text = em.textContent.trim();
+            const parentLi = em.closest('li');
+            const labelText = parentLi?.textContent.trim();
+            
+            if (labelText?.includes('예상 수익률') || labelText?.includes('수익률')) {
+                expectedYield = parseFloat(text);
+            } else if (labelText?.includes('누적 수익') || labelText?.includes('수익액')) {
+                cumulativeProfit = parseInt(text.replace(/,/g, ''));
+            } else if (labelText?.includes('상환 예정') || labelText?.includes('예정 원금')) {
+                expectedRepaymentPrincipal = parseInt(text.replace(/,/g, ''));
+            }
+        });
+        
+        return {
+            expectedYield,
+            cumulativeProfit,
+            expectedRepaymentPrincipal
+        };
     }
 
     // 쿠키에서 데이터 로드 (기존 로직 유지)
@@ -164,15 +228,22 @@
     // 페이지 감시 시작
     function startPageMonitoring() {
         let isProcessing = false;
-        let lastProcessTime = 0;
+        let isLoadingMore = false;  // 더보기 클릭 중인지 확인
         
-        // 즉시 한 번 실행
-        setTimeout(processCurrentData, 1000);
+        // 먼저 더보기 버튼을 모두 클릭한 후 데이터 처리
+        setTimeout(() => {
+            isLoadingMore = true;
+            autoClickLoadMore(() => {
+                // 더보기 완료 후 데이터 처리
+                isLoadingMore = false;
+                processCurrentData();
+            });
+        }, 2000);
 
-        // 페이지 변화 감시 (디바운싱 적용)
+        // 페이지 변화 감시 (더보기 클릭 중에는 처리하지 않음)
         const observer = new MutationObserver((mutations) => {
-            // 이미 처리 중이거나 최근에 처리했으면 스킵
-            if (isProcessing || Date.now() - lastProcessTime < 3000) {
+            // 더보기 클릭 중이거나 이미 처리 중이면 스킵
+            if (isLoadingMore || isProcessing) {
                 return;
             }
             
@@ -197,12 +268,14 @@
 
             if (shouldProcess) {
                 isProcessing = true;
-                setTimeout(() => {
+                // 더보기 버튼 먼저 클릭
+                isLoadingMore = true;
+                autoClickLoadMore(() => {
+                    isLoadingMore = false;
                     processCurrentData().finally(() => {
                         isProcessing = false;
-                        lastProcessTime = Date.now();
                     });
-                }, 500);
+                });
             }
         });
 
@@ -210,20 +283,53 @@
             childList: true,
             subtree: true
         });
-
-        // 자동 "더보기" 클릭
-        setTimeout(autoClickLoadMore, 2000);
     }
 
     // 자동 "더보기" 클릭
-    function autoClickLoadMore() {
-        const loadMoreButtons = document.querySelectorAll('button');
-        loadMoreButtons.forEach(button => {
-            if (button.textContent.trim() === '더보기') {
-                button.click();
-                setTimeout(autoClickLoadMore, 1000);
+    function autoClickLoadMore(callback) {
+        // table-list-more div 찾기
+        const moreContainer = document.querySelector('.table-list-more');
+        
+        if (moreContainer) {
+            // display: none이 아닌지 확인
+            const isVisible = moreContainer.style.display !== 'none';
+            
+            if (isVisible) {
+                // 더보기 버튼 찾기
+                const loadMoreButton = moreContainer.querySelector('button.btn-basic');
+                
+                if (loadMoreButton && (loadMoreButton.textContent.includes('더보기') || loadMoreButton.textContent.includes('+'))) {
+                    console.log('[MoneyMove Analyzer] 더보기 버튼 클릭');
+                    loadMoreButton.click();
+                    
+                    // 다음 더보기 버튼 찾기 위해 대기
+                    setTimeout(() => autoClickLoadMore(callback), 1000);
+                } else {
+                    console.log('[MoneyMove Analyzer] 더보기 버튼을 찾을 수 없음');
+                    // 더보기 완료 후 콜백 실행
+                    if (callback) setTimeout(callback, 500);
+                }
+            } else {
+                console.log('[MoneyMove Analyzer] 모든 데이터 로드 완료');
+                // 더보기 완료 후 콜백 실행
+                if (callback) setTimeout(callback, 500);
             }
-        });
+        } else {
+            // fallback: 기존 방식으로도 시도
+            const buttons = document.querySelectorAll('button');
+            let found = false;
+            buttons.forEach(button => {
+                if (button.textContent.trim().includes('더보기')) {
+                    button.click();
+                    found = true;
+                    setTimeout(() => autoClickLoadMore(callback), 1000);
+                }
+            });
+            // 더보기 버튼을 찾지 못했으면 콜백 실행
+            if (!found && callback) {
+                setTimeout(callback, 500);
+            }
+        }
     }
 
     // 현재 데이터 처리
@@ -233,7 +339,7 @@
             uiComponents.removeSummaryBox();
 
             // 계산 실행
-            const metrics = calculator.calculateAllMetrics(
+            const metrics = await calculator.calculateAllMetrics(
                 EXPECTED_REPAYMENT_PRINCIPAL,
                 EXPECTED_YIELD,
                 CUMULATIVE_PROFIT
@@ -244,18 +350,7 @@
             metrics.expectedYield = EXPECTED_YIELD;
             metrics.cumulativeProfit = CUMULATIVE_PROFIT;
 
-            // 현재 월의 최소/최대값 가져오기
-            const monthMinMax = await getCurrentMonthMinMax();
-
-            // 요약 박스 생성 및 추가
-            const summaryElement = uiComponents.createSummaryBox(metrics, monthMinMax);
-            uiComponents.addSummaryToPage(summaryElement);
-
-            // 이벤트 리스너 설정
-            uiComponents.setupSummaryEventListeners(chartManager, dataManager);
-            uiComponents.setupTooltipEvents();
-
-            // 월별 데이터 저장
+            // 월별 데이터 먼저 저장 (최소/최대 계산 전에)
             await dataManager.saveMonthlyData(
                 parseFloat(metrics.overdueRate) || 0,
                 metrics.overdueAmount,
@@ -264,6 +359,17 @@
                 metrics.monthsToRecoverLoss,
                 parseFloat(metrics.riskAdjustedReturn) || 0
             );
+
+            // 저장 후 현재 월의 최소/최대값 가져오기
+            const monthMinMax = await getCurrentMonthMinMax();
+
+            // 요약 박스 생성 및 추가
+            const summaryElement = await uiComponents.createSummaryBox(metrics, monthMinMax);
+            uiComponents.addSummaryToPage(summaryElement);
+
+            // 이벤트 리스너 설정
+            uiComponents.setupSummaryEventListeners(chartManager, dataManager);
+            uiComponents.setupTooltipEvents();
 
             // 로딩 상태 숨기기
             uiComponents.hideLoadingStatus();

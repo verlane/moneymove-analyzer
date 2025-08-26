@@ -41,7 +41,7 @@ class ChartManager {
     getChartModalHTML() {
         return `
             <div class="mm-modal-header">
-                <h3 class="mm-modal-title">📈 머니무브 투자 분석 차트</h3>
+                <h3 class="mm-modal-title">📈 투자 분석 차트</h3>
                 <button id="close-charts-btn" class="mm-modal-close">×</button>
             </div>
             <div class="mm-chart-controls">
@@ -65,7 +65,7 @@ class ChartManager {
                     <canvas id="overdueAmountChart" width="350" height="250"></canvas>
                 </div>
                 <div class="mm-chart-item">
-                    <h4>상환예정원금 추이</h4>
+                    <h4>상환 예정 원금 추이</h4>
                     <canvas id="expectedRepaymentChart" width="350" height="250"></canvas>
                 </div>
                 <div class="mm-chart-item">
@@ -73,7 +73,7 @@ class ChartManager {
                     <canvas id="recoveryChart" width="350" height="250"></canvas>
                 </div>
                 <div class="mm-chart-item">
-                    <h4>리스크조정수익률</h4>
+                    <h4>리스크 조정 수익률</h4>
                     <canvas id="riskAdjustedChart" width="350" height="250"></canvas>
                 </div>
             </div>
@@ -140,10 +140,10 @@ class ChartManager {
         const filteredData = this.filterDataByMode(this.monthlyData, this.currentViewMode);
         setTimeout(() => {
             this.createOverdueRateChart(filteredData);
-            this.createChart('overdueAmountChart', '연체금액 (만원)', filteredData.overdueAmount, '#ffb366', true, 'line', filteredData.labels);
-            this.createChart('expectedRepaymentChart', '상환예정원금 (만원)', filteredData.expectedRepayment, '#b19cd9', true, 'bar', filteredData.labels);
+            this.createChart('overdueAmountChart', '연체금액 (원)', filteredData.overdueAmount, '#ffb366', true, 'line', filteredData.labels);
+            this.createChart('expectedRepaymentChart', '상환 예정 원금 (원)', filteredData.expectedRepayment, '#b19cd9', true, 'bar', filteredData.labels);
             this.createChart('recoveryChart', '회복기간 (개월)', filteredData.recoveryMonths, '#98d982', false, 'line', filteredData.labels);
-            this.createChart('riskAdjustedChart', '리스크조정수익률 (%)', filteredData.riskAdjustedReturn, '#7dd3fc', false, 'line', filteredData.labels);
+            this.createChart('riskAdjustedChart', '리스크 조정 수익률 (%)', filteredData.riskAdjustedReturn, '#ff9999', false, 'line', filteredData.labels);
             this.createDashboardChart(filteredData);
         }, 100);
     }
@@ -218,9 +218,9 @@ class ChartManager {
         setTimeout(() => {
             this.createOverdueRateChart(data);
             this.createChart('overdueAmountChart', '연체금액 (원)', data.overdueAmount, '#ffb366', true, 'line', data.labels);
-            this.createChart('expectedRepaymentChart', '상환예정원금 (원)', data.expectedRepayment, '#b19cd9', true, 'bar', data.labels);
+            this.createChart('expectedRepaymentChart', '상환 예정 원금 (원)', data.expectedRepayment, '#b19cd9', true, 'bar', data.labels);
             this.createChart('recoveryChart', '회복기간 (개월)', data.recoveryMonths, '#98d982', false, 'line', data.labels);
-            this.createChart('riskAdjustedChart', '리스크조정수익률 (%)', data.riskAdjustedReturn, '#7dd3fc', false, 'line', data.labels);
+            this.createChart('riskAdjustedChart', '리스크 조정 수익률 (%)', data.riskAdjustedReturn, '#ff9999', false, 'line', data.labels);
             this.createDashboardChart(data);
         }, 100);
     }
@@ -342,8 +342,8 @@ class ChartManager {
         let borderColor = color;
         
         if (canvasId === 'netProfitChart') {
-            backgroundColor = data.map(value => value >= 0 ? '#ff99994D' : '#87ceeb4D');
-            borderColor = data.map(value => value >= 0 ? '#ff9999' : '#87ceeb');
+            backgroundColor = data.map(value => value >= 0 ? '#ff99994D' : '#ff99994D');
+            borderColor = data.map(value => value >= 0 ? '#ff9999' : '#ff9999');
         }
         
         new Chart(ctx, {
@@ -462,10 +462,10 @@ class ChartManager {
                         pointBorderWidth: 2
                     },
                     {
-                        label: '순수익 (만원)',
+                        label: '순수익 (원)',
                         data: data.netProfit.map(v => v / 10000),
-                        backgroundColor: data.netProfit.map(v => v >= 0 ? '#ff99994D' : '#87ceeb4D'),
-                        borderColor: data.netProfit.map(v => v >= 0 ? '#ff9999' : '#87ceeb'),
+                        backgroundColor: data.netProfit.map(v => v >= 0 ? '#ff99994D' : '#ff99994D'),
+                        borderColor: data.netProfit.map(v => v >= 0 ? '#ff9999' : '#ff9999'),
                         borderWidth: 1,
                         type: 'bar',
                         yAxisID: 'y1'

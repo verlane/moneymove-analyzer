@@ -2,7 +2,7 @@
 
 /* 색상 변수 */
 :root {
-    --mm-primary: #007bff;
+    --mm-primary: #009de9;
     --mm-success: #28a745;
     --mm-warning: #fd7e14;
     --mm-danger: #dc3545;
@@ -80,7 +80,7 @@
 .mm-summary {
     margin: 20px 0;
     padding: 15px;
-    background: var(--mm-light);
+    background: white;
     border: 1px solid var(--mm-border);
     border-radius: 5px;
 }
@@ -266,6 +266,65 @@
     }
 }
 
+/* 연체 현황 테이블 */
+.mm-status-table {
+    margin-top: 8px;
+    overflow-x: auto;
+}
+
+.mm-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    background: white;
+    border: 1px solid var(--mm-border);
+}
+
+/* 연체 현황 테이블에만 max-width 적용 */
+.mm-status-table .mm-table {
+    max-width: 900px;
+    margin-left: 10px;
+    margin-bottom: 10px;
+}
+
+.mm-table th,
+.mm-table td {
+    padding: 6px 8px;
+    border: 1px solid var(--mm-border);
+    text-align: left;
+}
+
+.mm-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: var(--mm-dark);
+    text-align: center;
+}
+
+/* 숫자 컬럼 오른쪽 정렬 */
+.mm-table td:nth-child(2), /* 투자금액 */
+.mm-table td:nth-child(3), /* 지급금액 */
+.mm-table td:nth-child(4), /* 연체금액 */
+.mm-table td:nth-child(5), /* 지급률 */
+.mm-table td:nth-child(6), /* 예상 손실률 */
+.mm-table td:nth-child(7) { /* 예상 손실액 */
+    text-align: right;
+}
+
+.mm-danger-row {
+    background: #fff9f9;
+}
+
+.mm-total-row {
+    background: #f0f8ff;
+    border-top: 2px solid var(--mm-primary);
+}
+
+/* 테이블 내 text-primary 폰트 크기 통일 */
+.mm-table .text-primary {
+    font-size: inherit;
+}
+
 /* 색상 유틸리티 클래스 */
 .text-primary {
     color: var(--mm-primary) !important;
@@ -300,8 +359,8 @@
     color: var(--mm-dark);
 }
 
-.mm-table-cell-right {
-    text-align: right;
+.mm-table .mm-table-cell-right {
+    text-align: right !important;
 }
 
 .mm-table-cell-center {
@@ -503,4 +562,110 @@
     .mm-chart-control-group {
         justify-content: center;
     }
+}
+
+/* 탭 스타일 */
+.mm-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--mm-border);
+    margin-bottom: 20px;
+}
+
+.mm-tab-btn {
+    background: none;
+    border: none;
+    padding: 12px 20px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--mm-muted);
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+.mm-tab-btn:hover {
+    color: var(--mm-dark);
+    background: var(--mm-light);
+}
+
+.mm-tab-btn.mm-tab-active {
+    color: var(--mm-primary);
+    border-bottom-color: var(--mm-primary);
+    font-weight: 500;
+}
+
+/* 손실률 설정 스타일 */
+.mm-loss-settings {
+    display: grid;
+    gap: 25px;
+    margin-bottom: 20px;
+}
+
+.mm-loss-setting-item {
+    padding: 15px;
+    border: 1px solid var(--mm-border);
+    border-radius: 5px;
+    background: white;
+}
+
+.mm-slider-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin: 10px 0;
+}
+
+.mm-slider {
+    flex: 1;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--mm-border);
+    border-radius: 3px;
+    outline: none;
+}
+
+.mm-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: var(--mm-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.mm-slider::-webkit-slider-thumb:hover {
+    background: #007bb8;
+}
+
+.mm-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: var(--mm-primary);
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+}
+
+.mm-slider-value {
+    font-weight: 600;
+    color: var(--mm-primary);
+    min-width: 50px;
+    text-align: right;
+    font-size: 16px;
+}
+
+.mm-form-help {
+    color: var(--mm-muted);
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+.mm-form-desc {
+    color: var(--mm-muted);
+    font-size: 14px;
+    margin-bottom: 20px;
+    line-height: 1.5;
 }

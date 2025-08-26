@@ -38,8 +38,27 @@ class UIComponents {
         }
     }
 
+    // 손실률 설정 로드
+    async loadLossRateSettings() {
+        const savedSettings = await window.getStorageData('moneyMoveLossRateSettings');
+        
+        if (savedSettings) {
+            return JSON.parse(savedSettings);
+        }
+        
+        // 기본값 반환
+        return {
+            delayLossRate: 30,
+            shortOverdueLossRate: 50,
+            bankruptcyLossRate: 70
+        };
+    }
+
     // 요약 박스 생성
-    createSummaryBox(metrics, monthMinMax = '') {
+    async createSummaryBox(metrics, monthMinMax = '') {
+        // 손실률 설정 로드
+        const lossSettings = await this.loadLossRateSettings();
+        
         const summaryDiv = document.createElement('div');
         summaryDiv.className = 'mm-summary';
 
@@ -49,83 +68,139 @@ class UIComponents {
                 <div class="mm-summary-row">
                     <span class="moneymove-tooltip">
                         연체율: <span class="text-primary">${metrics.overdueRate}${metrics.dataNotAvailable ? '' : '%'}</span> ${monthMinMax}
-                        <div class="tooltip-content">연체금액 ÷ 상환예정원금 × 100<br>${metrics.overdueAmount.toLocaleString()} ÷ ${metrics.expectedRepaymentPrincipal ? metrics.expectedRepaymentPrincipal.toLocaleString() : '?'} × 100<br><br>이번 달 최소/최대: ${monthMinMax || '첫 계산'}</div>
+                        <div class="tooltip-content">연체금액 ÷ 상환 예정 원금 × 100<br>${metrics.overdueAmount.toLocaleString()} ÷ ${metrics.expectedRepaymentPrincipal ? metrics.expectedRepaymentPrincipal.toLocaleString() : '?'} × 100</div>
                     </span> | 
                     <span class="moneymove-tooltip">
                         연체금액: <span class="text-primary">${metrics.overdueAmount.toLocaleString()}원</span>
-                        <div class="tooltip-content">연체투자금 - 연체지급금<br>${metrics.totalInvestment.toLocaleString()} - ${metrics.totalPayment.toLocaleString()}</div>
+                        <div class="tooltip-content">연체 투자금액 합계 - 연체 지급금액 합계<br>${metrics.totalInvestment.toLocaleString()} - ${metrics.totalPayment.toLocaleString()}</div>
                     </span> | 
                     <span class="moneymove-tooltip">
-                        연체 비중: ${metrics.dataNotAvailable ? '?' : metrics.overdueRatio + '%'}
-                        <div class="tooltip-content">연체투자금 ÷ 상환예정원금 × 100<br>${metrics.totalInvestment.toLocaleString()} ÷ ${metrics.expectedRepaymentPrincipal ? metrics.expectedRepaymentPrincipal.toLocaleString() : '?'} × 100</div>
+                        순수익: ${metrics.netProfit !== null ? (metrics.netProfit >= 0 ? '<span class="text-danger">' : '<span class="text-primary">') + metrics.netProfit.toLocaleString() + '원</span>' : '?'}
+                        <div class="tooltip-content">누적 수익액 - 연체금액<br>${metrics.cumulativeProfit ? metrics.cumulativeProfit.toLocaleString() : '?'} - ${metrics.overdueAmount.toLocaleString()}</div>
                     </span> | 
                     <span class="moneymove-tooltip">
-                        <button id="charts-btn" class="mm-btn-link">📈 차트보기</button>
-                        <div class="tooltip-content">1년간 월별 투자 분석 차트<br>• 연체율, 연체금액, 순수익 추이<br>• 손실회복기간, 리스크조정수익률<br>• 종합 대시보드 (마우스오버로 상세 데이터)</div>
+                        회복기간: ${metrics.monthsToRecoverLoss ? metrics.monthsToRecoverLoss + '개월' : '?'}
+                        <div class="tooltip-content">리스크 조정 수익률 기준 실제 회복 기간<br>${metrics.overdueAmount.toLocaleString()} ÷ 실제 월수익 ${metrics.netMonthlyProfit ? Math.floor(metrics.netMonthlyProfit).toLocaleString() : '?'}원</div>
                     </span> | 
                     <span class="moneymove-tooltip">
-                        <button id="data-manager-btn" class="mm-btn-link">🗂️ 데이터관리</button>
+                        <button id="charts-btn" class="mm-btn-link">📈 차트</button>
+                        <div class="tooltip-content">1년간 월별 투자 분석 차트<br>• 연체율, 연체 금액, 순수익 추이<br>• 회복 기간, 리스크 조정 수익률<br>• 종합 대시보드 (마우스 오버로 상세 데이터)</div>
+                    </span> | 
+                    <span class="moneymove-tooltip">
+                        <button id="data-manager-btn" class="mm-btn-link">🗂️ 관리</button>
                         <div class="tooltip-content">월별 데이터 관리<br>• 저장된 데이터 보기/편집<br>• 데이터 초기화<br>• 수동 입력</div>
                     </span>
                 </div>
 
-                <!-- 연체 세부 정보 (두 번째 줄) -->
+                <!-- 연체 현황 테이블 (두 번째 줄) -->
+                ${metrics.statusBreakdown ? `
                 <div class="mm-summary-section">
-                    <span class="mm-summary-section-title">📊 연체 세부:</span>
+                    <span class="mm-summary-section-title">연체현황:</span>
+                    <div class="mm-status-table">
+                        <table class="mm-table">
+                            <thead>
+                                <tr>
+                                    <th>상태</th>
+                                    <th>투자금액</th>
+                                    <th>지급금액</th>
+                                    <th>연체금액</th>
+                                    <th>지급률</th>
+                                    <th>예상 손실률</th>
+                                    <th>예상 손실액</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${metrics.statusBreakdown['상환지연'].count > 0 ? `
+                                <tr>
+                                    <td>상환지연(${metrics.statusBreakdown['상환지연'].count}건)</td>
+                                    <td>${(metrics.statusBreakdown['상환지연'].totalInvestment || 0).toLocaleString()}원</td>
+                                    <td>${(metrics.statusBreakdown['상환지연'].totalPayment || 0).toLocaleString()}원</td>
+                                    <td class="text-primary">${metrics.statusBreakdown['상환지연'].amount.toLocaleString()}원</td>
+                                    <td>${metrics.statusBreakdown['상환지연'].totalInvestment ? ((metrics.statusBreakdown['상환지연'].totalPayment || 0) / metrics.statusBreakdown['상환지연'].totalInvestment * 100).toFixed(1) : '0.0'}%</td>
+                                    <td>${lossSettings.delayLossRate}%</td>
+                                    <td class="text-primary">${Math.round(metrics.statusBreakdown['상환지연'].amount * lossSettings.delayLossRate / 100).toLocaleString()}원</td>
+                                </tr>` : ''}
+                                ${metrics.statusBreakdown['단기연체'].count > 0 ? `
+                                <tr>
+                                    <td>단기연체(${metrics.statusBreakdown['단기연체'].count}건)</td>
+                                    <td>${(metrics.statusBreakdown['단기연체'].totalInvestment || 0).toLocaleString()}원</td>
+                                    <td>${(metrics.statusBreakdown['단기연체'].totalPayment || 0).toLocaleString()}원</td>
+                                    <td class="text-primary">${metrics.statusBreakdown['단기연체'].amount.toLocaleString()}원</td>
+                                    <td>${metrics.statusBreakdown['단기연체'].totalInvestment ? ((metrics.statusBreakdown['단기연체'].totalPayment || 0) / metrics.statusBreakdown['단기연체'].totalInvestment * 100).toFixed(1) : '0.0'}%</td>
+                                    <td>${lossSettings.shortOverdueLossRate}%</td>
+                                    <td class="text-primary">${Math.round(metrics.statusBreakdown['단기연체'].amount * lossSettings.shortOverdueLossRate / 100).toLocaleString()}원</td>
+                                </tr>` : ''}
+                                ${metrics.statusBreakdown['개인회생'].count > 0 ? `
+                                <tr class="mm-danger-row">
+                                    <td>개인회생(${metrics.statusBreakdown['개인회생'].count}건)</td>
+                                    <td>${(metrics.statusBreakdown['개인회생'].totalInvestment || 0).toLocaleString()}원</td>
+                                    <td>${(metrics.statusBreakdown['개인회생'].totalPayment || 0).toLocaleString()}원</td>
+                                    <td class="text-primary">${metrics.statusBreakdown['개인회생'].amount.toLocaleString()}원</td>
+                                    <td>${metrics.statusBreakdown['개인회생'].totalInvestment ? ((metrics.statusBreakdown['개인회생'].totalPayment || 0) / metrics.statusBreakdown['개인회생'].totalInvestment * 100).toFixed(1) : '0.0'}%</td>
+                                    <td class="text-primary">${lossSettings.bankruptcyLossRate}%</td>
+                                    <td class="text-primary">${Math.round(metrics.statusBreakdown['개인회생'].amount * lossSettings.bankruptcyLossRate / 100).toLocaleString()}원</td>
+                                </tr>` : ''}
+                                <tr class="mm-total-row">
+                                    <td><strong>합계(${Object.values(metrics.statusBreakdown).reduce((sum, item) => sum + item.count, 0)}건)</strong></td>
+                                    <td><strong>${metrics.totalInvestment.toLocaleString()}원</strong></td>
+                                    <td><strong>${metrics.totalPayment.toLocaleString()}원</strong></td>
+                                    <td class="text-primary"><strong>${metrics.overdueAmount.toLocaleString()}원</strong></td>
+                                    <td><strong>${metrics.paymentRatio}%</strong></td>
+                                    <td><strong>-</strong></td>
+                                    <td class="text-primary"><strong>${metrics.expectedLoss.toLocaleString()}원</strong></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                ` : ''}
+
+                <!-- 손실 예상 분석 (세 번째 줄) -->
+                ${metrics.expectedLoss ? `
+                <div class="mm-summary-section">
+                    <span class="mm-summary-section-title">손실예상:</span>
                     <span class="moneymove-tooltip">
-                        투자금액합계 ${metrics.totalInvestment.toLocaleString()}원
-                        <div class="tooltip-content">연체 상태인 모든 투자금액의 합계<br>(화면의 투자금액 컬럼 전체 합산)</div>
-                    </span> → 
+                        손실액 <span class="${metrics.expectedLoss > metrics.overdueAmount * 0.5 ? 'text-primary' : ''}">${metrics.expectedLoss.toLocaleString()}원</span>
+                        <div class="tooltip-content">상태별 가중 손실 예상액<br>상환지연 ${lossSettings.delayLossRate}% + 단기연체 ${lossSettings.shortOverdueLossRate}%<br>+ 개인회생 ${lossSettings.bankruptcyLossRate}%</div>
+                    </span> | 
                     <span class="moneymove-tooltip">
-                        지급금액합계 ${metrics.totalPayment.toLocaleString()}원
-                        <div class="tooltip-content">연체 상태에서도 받은 지급금액의 합계<br>(화면의 지급금액 컬럼 전체 합산)</div>
-                    </span> → 
+                        손실률 <span class="${parseFloat(metrics.actualLossRate) > 3 ? 'text-primary' : ''}">${metrics.actualLossRate}%</span>
+                        <div class="tooltip-content">예상 손실액 ÷ 상환 예정 원금 × 100<br>${metrics.expectedLoss.toLocaleString()} ÷ ${metrics.expectedRepaymentPrincipal.toLocaleString()} × 100</div>
+                    </span> | 
                     <span class="moneymove-tooltip">
-                        회수율 ${metrics.dataNotAvailable ? '?' : metrics.paymentRatio + '%'}
-                        <div class="tooltip-content">연체지급금 ÷ 연체투자금 × 100<br>${metrics.totalPayment.toLocaleString()} ÷ ${metrics.totalInvestment.toLocaleString()} × 100</div>
+                        순수익 ${metrics.expectedNetProfit !== null ? (metrics.expectedNetProfit >= 0 ? '<span class="text-danger">' : '<span class="text-primary">') + metrics.expectedNetProfit.toLocaleString() + '원</span>' : '?'}
+                        <div class="tooltip-content">누적 수익액 - 예상 손실액<br>${metrics.cumulativeProfit ? metrics.cumulativeProfit.toLocaleString() : '?'} - ${metrics.expectedLoss.toLocaleString()}</div>
+                    </span> | 
+                    <span class="moneymove-tooltip">
+                        회복기간 ${metrics.expectedMonthsToRecoverLoss ? metrics.expectedMonthsToRecoverLoss + '개월' : '?'}
+                        <div class="tooltip-content">예상 손실액 기준 회복 기간<br>${metrics.expectedLoss.toLocaleString()} ÷ 실제 월수익 ${metrics.netMonthlyProfit ? Math.floor(metrics.netMonthlyProfit).toLocaleString() : '?'}원</div>
                     </span>
                 </div>
+                ` : ''}
 
-                <!-- 수익성 분석 (세 번째 줄) -->
-                <div class="mm-summary-section">
-                    <span class="mm-summary-section-title">💰 수익 분석:</span>
-                    <span class="moneymove-tooltip">
-                        예상수익률 ${metrics.expectedYield ? metrics.expectedYield + '%' : '?'}
-                        <div class="tooltip-content">상환중인 원리금수취권의<br>가중평균 수익률 (메인페이지)</div>
-                    </span> → 
-                    <span class="moneymove-tooltip">
-                        리스크조정수익률 ${metrics.riskAdjustedReturn ? metrics.riskAdjustedReturn + '%' : '?'}
-                        <div class="tooltip-content">연체리스크를 반영한 실제 수익률<br>예상수익률 × (1 - 연체비중)<br>${metrics.expectedYield ? metrics.expectedYield : '?'}% × (1 - ${metrics.overdueRatio ? metrics.overdueRatio : '?'}%)</div>
-                    </span> → 
-                    <span class="moneymove-tooltip">
-                        순수익 ${metrics.netProfit !== null ? (metrics.netProfit >= 0 ? '<span class="text-danger">' : '<span class="text-primary">') + metrics.netProfit.toLocaleString() + '원</span>' : '?'}
-                        <div class="tooltip-content">누적수익 - 연체손실금액<br>${metrics.cumulativeProfit ? metrics.cumulativeProfit.toLocaleString() : '?'} - ${metrics.overdueAmount.toLocaleString()}</div>
-                    </span> → 
-                    <span class="moneymove-tooltip">
-                        손실회복 ${metrics.monthsToRecoverLoss ? metrics.monthsToRecoverLoss + '개월' : '?'}
-                        <div class="tooltip-content">리스크조정수익률 기준 실제 회복기간<br>${metrics.overdueAmount.toLocaleString()} ÷ 실제월수익 ${metrics.netMonthlyProfit ? Math.floor(metrics.netMonthlyProfit).toLocaleString() : '?'}원<br><br>실제월수익 = (상환예정원금 × 리스크조정수익률 ÷ 12) × (1 - 16.4%)<br>${metrics.expectedRepaymentPrincipal ? metrics.expectedRepaymentPrincipal.toLocaleString() : '?'} × ${metrics.riskAdjustedReturn ? metrics.riskAdjustedReturn : '?'}% ÷ 12 × 83.6%<br><br>※ 연체리스크 + 세금 15.4% + 플랫폼이용료 1% 모두 반영</div>
-                    </span>
-                </div>
-
-                <!-- 전체 포트폴리오 정보 (네 번째 줄) -->
+                <!-- 투자현황 정보 (네 번째 줄) -->
                 ${!metrics.dataNotAvailable ? `
                 <div class="mm-portfolio-section">
-                    <span class="mm-summary-section-title">🏦 전체 포트폴리오:</span>
+                    <span class="mm-summary-section-title">투자현황:</span>
                     <span class="moneymove-tooltip">
-                        상환예정원금 ${metrics.expectedRepaymentPrincipal.toLocaleString()}원
+                        상환 예정 원금 ${metrics.expectedRepaymentPrincipal.toLocaleString()}원
                         <div class="tooltip-content">투자한 모든 원리금수취권의<br>원금 총합 (메인페이지 데이터)</div>
                     </span> = 
                     <span class="moneymove-tooltip">
                         정상 ${metrics.normalInvestment ? metrics.normalInvestment.toLocaleString() + '원' : '?'}
-                        <div class="tooltip-content">상환예정원금 - 연체투자금<br>${metrics.expectedRepaymentPrincipal.toLocaleString()} - ${metrics.totalInvestment.toLocaleString()}</div>
+                        <div class="tooltip-content">상환 예정 원금 - 연체 금액<br>${metrics.expectedRepaymentPrincipal.toLocaleString()} - ${metrics.overdueAmount.toLocaleString()}</div>
                     </span> + 
                     <span class="moneymove-tooltip">
-                        연체 ${metrics.totalInvestment.toLocaleString()}원
-                        <div class="tooltip-content">연체 상태인 투자금액 합계</div>
+                        연체 ${metrics.overdueAmount.toLocaleString()}원
+                        <div class="tooltip-content">연체금액 (연체투자금 - 연체지급금)</div>
                     </span> | 
                     <span class="moneymove-tooltip">
-                        누적수익 ${metrics.cumulativeProfit ? metrics.cumulativeProfit.toLocaleString() + '원' : '?'}
+                        누적 수익액 ${metrics.cumulativeProfit ? metrics.cumulativeProfit.toLocaleString() + '원' : '?'}
                         <div class="tooltip-content">전체 투자로부터 얻은<br>누적 순수익액 (메인페이지)</div>
+                    </span> | 
+                    <span class="moneymove-tooltip">
+                        예상 수익률 ${metrics.expectedYield ? metrics.expectedYield + '%' : '?'}(${metrics.riskAdjustedReturn ? metrics.riskAdjustedReturn + '%' : '?'})
+                        <div class="tooltip-content">기본 예상 수익률: ${metrics.expectedYield ? metrics.expectedYield + '%' : '?'}<br>리스크 조정 수익률: ${metrics.riskAdjustedReturn ? metrics.riskAdjustedReturn + '%' : '?'}<br>= ${metrics.expectedYield ? metrics.expectedYield : '?'}% × (1 - ${metrics.overdueRatio ? metrics.overdueRatio : '?'}%)<br>(연체 비중을 반영한 실제 수익률)</div>
                     </span>
                 </div>
                 ` : ''}

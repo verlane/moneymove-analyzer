@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "MoneyMove 머니무브 분석기",
-  "version": "0.0.2",
+  "version": "0.0.4",
   "description": "머니무브 투자 분석 데이터를 자동 계산 및 시각화 | Automatically calculates and visualizes investment analysis data on MoneyMove overdue pages",
   "permissions": [
     "storage",

@@ -177,7 +177,13 @@ class DataManager {
                 <button id="close-manager-btn" class="mm-modal-close">×</button>
             </div>
             
-            <div class="mm-section-divider">
+            <div class="mm-tabs">
+                <button class="mm-tab-btn mm-tab-active" data-tab="monthly-data">월별 데이터</button>
+                <button class="mm-tab-btn" data-tab="loss-settings">손실률 설정</button>
+            </div>
+            
+            <div class="mm-tab-content" data-tab="monthly-data">
+                <div class="mm-section-divider">
                 <button id="show-add-form-btn" class="mm-btn mm-btn-primary">추가</button>
                 <button id="import-data-btn" class="mm-btn mm-btn-secondary">가져오기</button>
                 <button id="export-data-btn" class="mm-btn mm-btn-secondary">내보내기</button>
@@ -227,7 +233,7 @@ class DataManager {
                         <input type="number" id="manual-recovery-months" placeholder="9" class="mm-form-input">
                     </div>
                     <div>
-                        <label class="mm-form-label">리스크조정수익률 (%)</label>
+                        <label class="mm-form-label">리스크 조정 수익률 (%)</label>
                         <input type="number" id="manual-risk-adjusted" step="0.01" placeholder="13.12" class="mm-form-input">
                     </div>
                 </div>
@@ -249,7 +255,7 @@ class DataManager {
                             <th class="mm-table-header mm-table-header-right">상환예정원금</th>
                             <th class="mm-table-header mm-table-header-right">순수익</th>
                             <th class="mm-table-header mm-table-header-right">회복기간</th>
-                            <th class="mm-table-header mm-table-header-right">리스크조정</th>
+                            <th class="mm-table-header mm-table-header-right">리스크 조정 수익률</th>
                             <th class="mm-table-header mm-table-header-center">관리</th>
                         </tr>
                     </thead>
@@ -257,10 +263,52 @@ class DataManager {
                 </table>
             </div>
             
-            <div id="dev-mode-section" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6; text-align: center;">
-                <small style="color: #6c757d; margin-right: 10px;">개발 모드</small>
-                <button id="add-test-data-btn" class="mm-btn mm-btn-secondary mm-btn-small">테스트 데이터</button>
-                <button id="toggle-dev-mode-btn" class="mm-btn mm-btn-secondary mm-btn-small">개발 모드 OFF</button>
+                <div id="dev-mode-section" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #dee2e6; text-align: center;">
+                    <small style="color: #6c757d; margin-right: 10px;">개발 모드</small>
+                    <button id="add-test-data-btn" class="mm-btn mm-btn-secondary mm-btn-small">테스트 데이터</button>
+                    <button id="toggle-dev-mode-btn" class="mm-btn mm-btn-secondary mm-btn-small">개발 모드 OFF</button>
+                </div>
+            </div>
+            
+            <div class="mm-tab-content" data-tab="loss-settings" style="display: none;">
+                <div class="mm-section-divider">
+                    <h4 class="mm-form-title">손실률 설정</h4>
+                    <p class="mm-form-desc">각 연체 상태별 예상 손실률을 조정하세요. 이 설정은 예상 손실액 계산에 사용됩니다.</p>
+                </div>
+                
+                <div class="mm-loss-settings">
+                    <div class="mm-loss-setting-item">
+                        <label class="mm-form-label">상환지연 손실률</label>
+                        <div class="mm-slider-container">
+                            <input type="range" id="delay-loss-rate" min="0" max="100" value="30" step="1" class="mm-slider">
+                            <span class="mm-slider-value" id="delay-loss-value">30%</span>
+                        </div>
+                        <small class="mm-form-help">상환이 지연되고 있는 채권의 예상 손실률</small>
+                    </div>
+                    
+                    <div class="mm-loss-setting-item">
+                        <label class="mm-form-label">단기연체 손실률</label>
+                        <div class="mm-slider-container">
+                            <input type="range" id="short-overdue-loss-rate" min="0" max="100" value="50" step="1" class="mm-slider">
+                            <span class="mm-slider-value" id="short-overdue-loss-value">50%</span>
+                        </div>
+                        <small class="mm-form-help">단기간 연체 상태인 채권의 예상 손실률</small>
+                    </div>
+                    
+                    <div class="mm-loss-setting-item">
+                        <label class="mm-form-label">개인회생 손실률</label>
+                        <div class="mm-slider-container">
+                            <input type="range" id="bankruptcy-loss-rate" min="0" max="100" value="70" step="1" class="mm-slider">
+                            <span class="mm-slider-value" id="bankruptcy-loss-value">70%</span>
+                        </div>
+                        <small class="mm-form-help">개인회생/파산 신청 채권의 예상 손실률</small>
+                    </div>
+                </div>
+                
+                <div class="mm-form-actions">
+                    <button id="reset-loss-settings-btn" class="mm-btn mm-btn-secondary">기본값 복원</button>
+                    <button id="save-loss-settings-btn" class="mm-btn mm-btn-primary">저장</button>
+                </div>
             </div>
         `;
     }
@@ -271,6 +319,32 @@ class DataManager {
         document.getElementById('close-manager-btn').addEventListener('click', () => {
             document.getElementById('moneymove-data-manager-overlay').remove();
         });
+
+        // 탭 전환 이벤트
+        document.querySelectorAll('.mm-tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const targetTab = e.target.dataset.tab;
+                
+                // 모든 탭 버튼 비활성화
+                document.querySelectorAll('.mm-tab-btn').forEach(b => b.classList.remove('mm-tab-active'));
+                // 현재 탭 버튼 활성화
+                e.target.classList.add('mm-tab-active');
+                
+                // 모든 탭 콘텐츠 숨기기
+                document.querySelectorAll('.mm-tab-content').forEach(content => {
+                    content.style.display = 'none';
+                });
+                
+                // 현재 탭 콘텐츠 보이기
+                const targetContent = document.querySelector(`.mm-tab-content[data-tab="${targetTab}"]`);
+                if (targetContent) {
+                    targetContent.style.display = 'block';
+                }
+            });
+        });
+
+        // 손실률 슬라이더 이벤트
+        this.setupLossRateSliders();
 
         // 오버레이 클릭시 닫기
         managerOverlay.addEventListener('click', (e) => {
@@ -319,6 +393,108 @@ class DataManager {
 
         // 개발 모드 확인 및 표시
         this.checkAndShowDevMode();
+    }
+
+    // 손실률 슬라이더 설정
+    async setupLossRateSliders() {
+        // 저장된 손실률 설정 로드
+        const savedSettings = await this.loadLossRateSettings();
+        
+        // 각 슬라이더에 저장된 값 적용
+        const delaySlider = document.getElementById('delay-loss-rate');
+        const shortSlider = document.getElementById('short-overdue-loss-rate');
+        const bankruptcySlider = document.getElementById('bankruptcy-loss-rate');
+        
+        const delayValue = document.getElementById('delay-loss-value');
+        const shortValue = document.getElementById('short-overdue-loss-value');
+        const bankruptcyValue = document.getElementById('bankruptcy-loss-value');
+        
+        if (delaySlider) {
+            delaySlider.value = savedSettings.delayLossRate;
+            delayValue.textContent = savedSettings.delayLossRate + '%';
+            
+            delaySlider.addEventListener('input', (e) => {
+                delayValue.textContent = e.target.value + '%';
+            });
+        }
+        
+        if (shortSlider) {
+            shortSlider.value = savedSettings.shortOverdueLossRate;
+            shortValue.textContent = savedSettings.shortOverdueLossRate + '%';
+            
+            shortSlider.addEventListener('input', (e) => {
+                shortValue.textContent = e.target.value + '%';
+            });
+        }
+        
+        if (bankruptcySlider) {
+            bankruptcySlider.value = savedSettings.bankruptcyLossRate;
+            bankruptcyValue.textContent = savedSettings.bankruptcyLossRate + '%';
+            
+            bankruptcySlider.addEventListener('input', (e) => {
+                bankruptcyValue.textContent = e.target.value + '%';
+            });
+        }
+        
+        // 저장 버튼 이벤트
+        const saveBtn = document.getElementById('save-loss-settings-btn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', async () => {
+                const settings = {
+                    delayLossRate: parseInt(delaySlider.value),
+                    shortOverdueLossRate: parseInt(shortSlider.value),
+                    bankruptcyLossRate: parseInt(bankruptcySlider.value)
+                };
+                
+                await this.saveLossRateSettings(settings);
+                alert('손실률 설정이 저장되었습니다. 연체 현황이 업데이트됩니다.');
+                
+                // 모달 닫기
+                document.getElementById('moneymove-data-manager-overlay').remove();
+                
+                // 페이지 새로고침 요청 (연체 현황 테이블 업데이트를 위해)
+                if (window.location.href.includes('moneymove.ai')) {
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 500);
+                }
+            });
+        }
+        
+        // 기본값 복원 버튼 이벤트
+        const resetBtn = document.getElementById('reset-loss-settings-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+                delaySlider.value = 30;
+                shortSlider.value = 50;
+                bankruptcySlider.value = 70;
+                
+                delayValue.textContent = '30%';
+                shortValue.textContent = '50%';
+                bankruptcyValue.textContent = '70%';
+            });
+        }
+    }
+    
+    // 손실률 설정 로드
+    async loadLossRateSettings() {
+        const savedSettings = await window.getStorageData('moneyMoveLossRateSettings');
+        
+        if (savedSettings) {
+            return JSON.parse(savedSettings);
+        }
+        
+        // 기본값 반환
+        return {
+            delayLossRate: 30,
+            shortOverdueLossRate: 50,
+            bankruptcyLossRate: 70
+        };
+    }
+    
+    // 손실률 설정 저장
+    async saveLossRateSettings(settings) {
+        await window.setStorageData('moneyMoveLossRateSettings', JSON.stringify(settings));
     }
 
     // 개발 모드 확인 및 표시
