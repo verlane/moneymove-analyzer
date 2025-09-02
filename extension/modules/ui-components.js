@@ -137,7 +137,7 @@ class UIComponents {
                                     <td>${(metrics.statusBreakdown['개인회생'].totalPayment || 0).toLocaleString()}원</td>
                                     <td class="text-primary">${metrics.statusBreakdown['개인회생'].amount.toLocaleString()}원</td>
                                     <td>${metrics.statusBreakdown['개인회생'].totalInvestment ? ((metrics.statusBreakdown['개인회생'].totalPayment || 0) / metrics.statusBreakdown['개인회생'].totalInvestment * 100).toFixed(1) : '0.0'}%</td>
-                                    <td class="text-primary">${lossSettings.bankruptcyLossRate}%</td>
+                                    <td>${lossSettings.bankruptcyLossRate}%</td>
                                     <td class="text-primary">${Math.round(metrics.statusBreakdown['개인회생'].amount * lossSettings.bankruptcyLossRate / 100).toLocaleString()}원</td>
                                 </tr>` : ''}
                                 <tr class="mm-total-row">
@@ -146,7 +146,7 @@ class UIComponents {
                                     <td><strong>${metrics.totalPayment.toLocaleString()}원</strong></td>
                                     <td class="text-primary"><strong>${metrics.overdueAmount.toLocaleString()}원</strong></td>
                                     <td><strong>${metrics.paymentRatio}%</strong></td>
-                                    <td><strong>-</strong></td>
+                                    <td><strong>${(metrics.expectedLoss / metrics.overdueAmount * 100).toFixed(1)}%</strong></td>
                                     <td class="text-primary"><strong>${metrics.expectedLoss.toLocaleString()}원</strong></td>
                                 </tr>
                             </tbody>
