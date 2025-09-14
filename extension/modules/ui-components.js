@@ -269,7 +269,7 @@ class UIComponents {
         });
     }
 
-    // 상태 필터 토글 (복수 선택 지원)
+    // 상태 필터 토글 (라디오 버튼 방식 - 하나만 선택, 해제 가능)
     toggleStatusFilter(clickedButton, status) {
         // 연체 테이블 찾기
         const overdueTable = document.querySelector('#bond-overdue .table-list table tbody') ||
@@ -277,72 +277,46 @@ class UIComponents {
 
         if (overdueTable) {
             const rows = overdueTable.querySelectorAll('tr[id="note-row"]');
-            // 전체 버튼 클릭 시는 기존 로직 유지
-            if (status === '전체') {
-                // 모든 버튼 초기화하고 전체만 활성화
-                const allButtons = document.querySelectorAll('.mm-status-filter-btn');
-                allButtons.forEach(btn => btn.classList.remove('mm-active-filter'));
-
-                clickedButton.classList.add('mm-active-filter');
-
-                // 모든 행 표시
-                rows.forEach(row => {
-                    row.style.display = '';
-                });
-                return;
-            }
 
             // 현재 클릭된 버튼이 이미 활성화되어 있는지 확인
             const isCurrentlyActive = clickedButton.classList.contains('mm-active-filter');
 
+            // 모든 버튼 스타일 초기화
+            const allButtons = document.querySelectorAll('.mm-status-filter-btn');
+            allButtons.forEach(btn => btn.classList.remove('mm-active-filter'));
+
             if (isCurrentlyActive) {
-                // 토글 OFF - 해당 버튼 비활성화
-                clickedButton.classList.remove('mm-active-filter');
-            } else {
-                // 토글 ON - 해당 버튼 활성화
-                clickedButton.classList.add('mm-active-filter');
-
-                // 전체 버튼이 활성화되어 있으면 비활성화
-                const allButton = document.querySelector('.mm-status-filter-btn.mm-status-all');
-                if (allButton) {
-                    allButton.classList.remove('mm-active-filter');
-                }
-            }
-
-            // 현재 활성화된 모든 버튼들 가져오기
-            const activeButtons = document.querySelectorAll('.mm-status-filter-btn.mm-active-filter');
-            const activeStatuses = Array.from(activeButtons).map(btn => btn.getAttribute('data-status'));
-
-            if (activeStatuses.length === 0) {
-                // 활성화된 버튼이 없으면 모든 행 표시
+                // 같은 버튼 다시 클릭 → 해제 (모든 행 표시)
                 rows.forEach(row => {
                     row.style.display = '';
                 });
             } else {
-                // 활성화된 상태들에 해당하는 행만 표시
-                let matchCount = 0;
+                // 다른 버튼 클릭 → 해당 상태만 활성화
+                clickedButton.classList.add('mm-active-filter');
 
-                rows.forEach(row => {
-                    // 상태는 6번째 td에 있음
-                    let statusCell = row.querySelector('td:nth-child(6) .data-info');
+                if (status === '전체') {
+                    // 전체 선택 - 모든 행 표시
+                    rows.forEach(row => {
+                        row.style.display = '';
+                    });
+                } else {
+                    // 특정 상태로 필터링
+                    rows.forEach(row => {
+                        // 상태는 6번째 td에 있음
+                        let statusCell = row.querySelector('td:nth-child(6) .data-info');
 
-                    if (statusCell) {
-                        const statusText = statusCell.textContent.trim();
+                        if (statusCell) {
+                            const statusText = statusCell.textContent.trim();
+                            const isMatch = this.isStatusMatch(statusText, status);
 
-                        // 활성화된 상태 중 하나라도 매칭되면 표시
-                        const shouldShow = activeStatuses.some(activeStatus =>
-                            this.isStatusMatch(statusText, activeStatus)
-                        );
-
-                        if (shouldShow) {
-                            row.style.display = '';
-                            matchCount++;
-                        } else {
-                            row.style.display = 'none';
+                            if (isMatch) {
+                                row.style.display = '';
+                            } else {
+                                row.style.display = 'none';
+                            }
                         }
-                    }
-                });
-
+                    });
+                }
             }
         }
     }
