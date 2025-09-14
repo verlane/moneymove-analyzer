@@ -112,7 +112,7 @@ class UIComponents {
                             <tbody>
                                 ${metrics.statusBreakdown['상환지연'].count > 0 ? `
                                 <tr>
-                                    <td>상환지연(${metrics.statusBreakdown['상환지연'].count}건)</td>
+                                    <td><button class="mm-status-filter-btn" data-status="상환지연">상환지연(${metrics.statusBreakdown['상환지연'].count}건)</button></td>
                                     <td>${(metrics.statusBreakdown['상환지연'].totalInvestment || 0).toLocaleString()}원</td>
                                     <td>${(metrics.statusBreakdown['상환지연'].totalPayment || 0).toLocaleString()}원</td>
                                     <td class="text-primary">${metrics.statusBreakdown['상환지연'].amount.toLocaleString()}원</td>
@@ -122,7 +122,7 @@ class UIComponents {
                                 </tr>` : ''}
                                 ${metrics.statusBreakdown['단기연체'].count > 0 ? `
                                 <tr>
-                                    <td>단기연체(${metrics.statusBreakdown['단기연체'].count}건)</td>
+                                    <td><button class="mm-status-filter-btn" data-status="단기연체">단기연체(${metrics.statusBreakdown['단기연체'].count}건)</button></td>
                                     <td>${(metrics.statusBreakdown['단기연체'].totalInvestment || 0).toLocaleString()}원</td>
                                     <td>${(metrics.statusBreakdown['단기연체'].totalPayment || 0).toLocaleString()}원</td>
                                     <td class="text-primary">${metrics.statusBreakdown['단기연체'].amount.toLocaleString()}원</td>
@@ -132,7 +132,7 @@ class UIComponents {
                                 </tr>` : ''}
                                 ${metrics.statusBreakdown['개인회생'].count > 0 ? `
                                 <tr class="mm-danger-row">
-                                    <td>개인회생(${metrics.statusBreakdown['개인회생'].count}건)</td>
+                                    <td><button class="mm-status-filter-btn" data-status="개인회생">개인회생(${metrics.statusBreakdown['개인회생'].count}건)</button></td>
                                     <td>${(metrics.statusBreakdown['개인회생'].totalInvestment || 0).toLocaleString()}원</td>
                                     <td>${(metrics.statusBreakdown['개인회생'].totalPayment || 0).toLocaleString()}원</td>
                                     <td class="text-primary">${metrics.statusBreakdown['개인회생'].amount.toLocaleString()}원</td>
@@ -141,7 +141,7 @@ class UIComponents {
                                     <td class="text-primary">${Math.round(metrics.statusBreakdown['개인회생'].amount * lossSettings.bankruptcyLossRate / 100).toLocaleString()}원</td>
                                 </tr>` : ''}
                                 <tr class="mm-total-row">
-                                    <td><strong>합계(${Object.values(metrics.statusBreakdown).reduce((sum, item) => sum + item.count, 0)}건)</strong></td>
+                                    <td><strong><button class="mm-status-filter-btn mm-status-all" data-status="전체">합계(${Object.values(metrics.statusBreakdown).reduce((sum, item) => sum + item.count, 0)}건)</button></strong></td>
                                     <td><strong>${metrics.totalInvestment.toLocaleString()}원</strong></td>
                                     <td><strong>${metrics.totalPayment.toLocaleString()}원</strong></td>
                                     <td class="text-primary"><strong>${metrics.overdueAmount.toLocaleString()}원</strong></td>
@@ -242,6 +242,122 @@ class UIComponents {
             dataManagerBtn.addEventListener('click', () => {
                 dataManager.showDataManager();
             });
+        }
+
+        // 상태별 필터링 버튼들
+        this.setupStatusFilterEvents();
+    }
+
+    // 상태별 필터링 이벤트 설정
+    setupStatusFilterEvents() {
+        const filterButtons = document.querySelectorAll('.mm-status-filter-btn');
+        let currentFilter = null; // 현재 활성 필터 추적
+
+        filterButtons.forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+
+                const status = button.getAttribute('data-status');
+
+                // 약간의 지연을 주어 깜빡임 방지
+                setTimeout(() => {
+                    this.toggleStatusFilter(button, status);
+                }, 10);
+            });
+        });
+    }
+
+    // 상태 필터 토글 (복수 선택 지원)
+    toggleStatusFilter(clickedButton, status) {
+        // 연체 테이블 찾기
+        const overdueTable = document.querySelector('#bond-overdue .table-list table tbody') ||
+                             document.querySelector('.table-list table tbody');
+
+        if (overdueTable) {
+            const rows = overdueTable.querySelectorAll('tr[id="note-row"]');
+            // 전체 버튼 클릭 시는 기존 로직 유지
+            if (status === '전체') {
+                // 모든 버튼 초기화하고 전체만 활성화
+                const allButtons = document.querySelectorAll('.mm-status-filter-btn');
+                allButtons.forEach(btn => btn.classList.remove('mm-active-filter'));
+
+                clickedButton.classList.add('mm-active-filter');
+
+                // 모든 행 표시
+                rows.forEach(row => {
+                    row.style.display = '';
+                });
+                return;
+            }
+
+            // 현재 클릭된 버튼이 이미 활성화되어 있는지 확인
+            const isCurrentlyActive = clickedButton.classList.contains('mm-active-filter');
+
+            if (isCurrentlyActive) {
+                // 토글 OFF - 해당 버튼 비활성화
+                clickedButton.classList.remove('mm-active-filter');
+            } else {
+                // 토글 ON - 해당 버튼 활성화
+                clickedButton.classList.add('mm-active-filter');
+
+                // 전체 버튼이 활성화되어 있으면 비활성화
+                const allButton = document.querySelector('.mm-status-filter-btn.mm-status-all');
+                if (allButton) {
+                    allButton.classList.remove('mm-active-filter');
+                }
+            }
+
+            // 현재 활성화된 모든 버튼들 가져오기
+            const activeButtons = document.querySelectorAll('.mm-status-filter-btn.mm-active-filter');
+            const activeStatuses = Array.from(activeButtons).map(btn => btn.getAttribute('data-status'));
+
+            if (activeStatuses.length === 0) {
+                // 활성화된 버튼이 없으면 모든 행 표시
+                rows.forEach(row => {
+                    row.style.display = '';
+                });
+            } else {
+                // 활성화된 상태들에 해당하는 행만 표시
+                let matchCount = 0;
+
+                rows.forEach(row => {
+                    // 상태는 6번째 td에 있음
+                    let statusCell = row.querySelector('td:nth-child(6) .data-info');
+
+                    if (statusCell) {
+                        const statusText = statusCell.textContent.trim();
+
+                        // 활성화된 상태 중 하나라도 매칭되면 표시
+                        const shouldShow = activeStatuses.some(activeStatus =>
+                            this.isStatusMatch(statusText, activeStatus)
+                        );
+
+                        if (shouldShow) {
+                            row.style.display = '';
+                            matchCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+
+            }
+        }
+    }
+
+    // 상태 매칭 확인
+    isStatusMatch(statusText, filterStatus) {
+        switch(filterStatus) {
+            case '상환지연':
+                return statusText.includes('상환지연');
+            case '단기연체':
+                return statusText.includes('단기연체');
+            case '개인회생':
+                return statusText.includes('개인회생');
+            default:
+                return true;
         }
     }
 

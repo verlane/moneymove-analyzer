@@ -669,3 +669,43 @@
     margin-bottom: 20px;
     line-height: 1.5;
 }
+
+/* 상태별 필터링 버튼 */
+.mm-status-filter-btn {
+    background: none;
+    border: none;
+    color: var(--mm-primary);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: inherit;
+    font-weight: inherit;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.mm-status-filter-btn:hover {
+    background-color: var(--mm-primary);
+    color: white;
+    text-decoration: none;
+}
+
+.mm-status-filter-btn.mm-active-filter {
+    background-color: var(--mm-primary);
+    color: white;
+}
+
+.mm-status-filter-btn.mm-status-all {
+    color: var(--mm-dark);
+}
+
+.mm-status-filter-btn.mm-status-all:hover {
+    background-color: var(--mm-dark);
+    color: white;
+}
+
+.mm-status-filter-btn.mm-status-all.mm-active-filter {
+    background-color: var(--mm-info);
+    color: white;
+}
